@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile Java",
+            "type": "shell",
+            "command": "javac",
+            "args": [
+                "-cp",
+                "lib/mysql-connector-j-9.5.0.jar",
+                "Complaint.java",
+                "ComplaintManager.java",
+                "Main.java"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Java",
+            "type": "shell",
+            "command": "java",
+            "args": [
+                "-cp",
+                ".;lib/mysql-connector-j-9.5.0.jar",
+                "Main"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": "Compile Java"
+        }
+    ]
+}
