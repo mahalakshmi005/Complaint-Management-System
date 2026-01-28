@@ -4,8 +4,7 @@ import java.sql.*;
 
 public class ComplaintManager {
 
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/complaint_db";
+    private static final String URL = "jdbc:mysql://localhost:3306/complaint_db";
     private static final String USER = "root";
     private static final String PASS = "";
 
@@ -14,107 +13,117 @@ public class ComplaintManager {
     public ComplaintManager() {
         try {
             conn = DriverManager.getConnection(URL, USER, PASS);
-            System.out.println("Database connected successfully!");
+            System.out.println("Database connected!");
         } catch (SQLException e) {
-            System.out.println("Database connection failed!");
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private boolean isConnected() {
-        return conn != null;
-    }
+    /* ================= STUDENT ================= */
 
-    // 1️⃣ Add Complaint
-    public void addComplaint(String title, String description) {
-        if (!isConnected()) return;
+    // Student → Add complaint
+    public void addComplaint(int studentId, String title, String description) {
 
-        String sql = "INSERT INTO complaints (title, description) VALUES (?, ?)";
+        String sql = """
+            INSERT INTO complaints
+            (title, description, status, student_id, created_date)
+            VALUES (?, ?, 'Pending', ?, CURDATE())
+        """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, title);
-            stmt.setString(2, description);
-            stmt.executeUpdate();
-            System.out.println("Complaint added successfully!");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.setString(2, description);
+            ps.setInt(3, studentId);
+            ps.executeUpdate();
+            System.out.println("Complaint submitted successfully!");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // 2️⃣ View Complaints
-    public void viewComplaints() {
-        if (!isConnected()) return;
+    // Student → View own complaints (know if closed)
+    public void viewStudentComplaints(int studentId) {
 
-        String sql = "SELECT * FROM complaints";
+        String sql = "SELECT * FROM complaints WHERE student_id=?";
 
-        try (
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)
-        ) {
-            boolean hasData = false;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            ResultSet rs = ps.executeQuery();
+
+            System.out.println("\nID | Title | Date | Status");
+            System.out.println("----------------------------");
 
             while (rs.next()) {
-                hasData = true;
+                String status = rs.getString("status");
+
                 System.out.println(
                         rs.getInt("id") + " | " +
                         rs.getString("title") + " | " +
-                        rs.getString("description") + " | " +
+                        rs.getDate("created_date") + " | " +
+                        status
+                );
+
+                if (status.equalsIgnoreCase("Resolved")) {
+                    System.out.println("➡️ Complaint CLOSED by admin");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* ================= ADMIN ================= */
+
+    // Admin → View all complaints
+    public void viewAllComplaints() {
+
+        String sql = "SELECT * FROM complaints";
+
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            System.out.println("\nID | Student | Title | Status");
+            System.out.println("--------------------------------");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("id") + " | " +
+                        rs.getInt("student_id") + " | " +
+                        rs.getString("title") + " | " +
                         rs.getString("status")
                 );
             }
-
-            if (!hasData) {
-                System.out.println("No complaints found.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // 3️⃣ Update Status ✅ FIXED
+    // Admin → Update status
     public void updateStatus(int id, String status) {
-        if (!isConnected()) return;
 
-        String sql = "UPDATE complaints SET status = ? WHERE id = ?";
+        String sql = "UPDATE complaints SET status=? WHERE id=?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            stmt.setInt(2, id);
-
-            int rows = stmt.executeUpdate();
-
-            if (rows > 0) {
-                System.out.println("Status updated successfully!");
-            } else {
-                System.out.println("Complaint ID not found.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+            System.out.println("Status updated!");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // 4️⃣ Delete Complaint ✅ FIXED
-    public void deleteComplaint(int deleteId) {
-        if (!isConnected()) return;
+    // Admin → Delete complaint
+    public void deleteComplaint(int id) {
 
-        String sql = "DELETE FROM complaints WHERE id = ?";
+        String sql = "DELETE FROM complaints WHERE id=?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, deleteId);
-
-            int rows = stmt.executeUpdate();
-
-            if (rows > 0) {
-                System.out.println("Complaint deleted successfully!");
-            } else {
-                System.out.println("Complaint ID not found.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            System.out.println("Complaint deleted!");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
-

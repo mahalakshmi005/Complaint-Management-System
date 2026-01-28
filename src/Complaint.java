@@ -1,25 +1,34 @@
 package src;
-public class Complaint {
-    private final int id;
-    private final String title;
-    private final String description;
-    private String status;
 
-    public Complaint(int id, String title, String description) {
-        this.id = id;
+import java.time.LocalDate;
+
+public class Complaint {
+
+    private int id;
+    private int studentId;
+    private String title;
+    private String description;
+    private String status;
+    private LocalDate createdDate;
+
+    public Complaint(int studentId, String title, String description) {
+        this.studentId = studentId;
         this.title = title;
         this.description = description;
-        this.status = "Open";
+        this.status = "Pending";
+        this.createdDate = LocalDate.now();
     }
 
-    public int getId() { return id; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public int getStudentId() {
+        return studentId;
+    }
 
-    @Override
-    public String toString() {
-        return id + " | " + title + " | " + description + " | " + status;
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
+
